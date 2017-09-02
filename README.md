@@ -1,5 +1,5 @@
 # Log2Ram
-Like ramlog for Debian based  sysV init systems 
+Like ramlog for  sysV init systems 
 
 Usefull for **Raspberry** for not writing all the time on the SD card. You need it because your SD card don't want to suffer anymore !
 
@@ -13,12 +13,14 @@ git clone https://github.com/azlux/log2ram.git
 cd log2ram
 chmod +x install.sh
 sudo ./install.sh
+/etc/init.d/log2ram start
+/etc/init.d/log2ram reload # To force sync
 ```
 **REBOOT** before installing anything else (for example apache2)
 
 ## Customize
 #### variables :
-Into the file `/etc/default/log2ram.conf`, there are three variables :
+Into the file `/etc/log2ram.conf`, there are three variables :
 
 - The first variable define the size the log folder will reserve into the RAM.
 - The second variable can be set to `true` if you prefer "rsync" than "cp". I use the command `cp -u` and `rsync -X`, I don't copy the all folder every time for optimization.
