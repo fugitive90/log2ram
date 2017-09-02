@@ -1,5 +1,5 @@
 # Log2Ram
-Like ramlog for systemd (on debian 8 jessie for example).
+Like ramlog for sysV initt (debian 8 jessie for example).
 
 Usefull for **Raspberry** for not writing all the time on the SD card. You need it because your SD card don't want to suffer anymore !
 
@@ -18,7 +18,7 @@ sudo ./install.sh
 
 ## Customize
 #### variables :
-Into the file `/etc/log2ram.conf`, there are three variables :
+Into the file `/etc/default/log2ram.conf`, there are three variables :
 
 - The first variable define the size the log folder will reserve into the RAM.
 - The second variable can be set to `true` if you prefer "rsync" than "cp". I use the command `cp -u` and `rsync -X`, I don't copy the all folder every time for optimization.

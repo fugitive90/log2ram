@@ -1,75 +1,160 @@
-#!/bin/sh
+#!/bin/sh 
 
-. /etc/log2ram.conf
+### BEGIN INIT INFO
+# Provides:          
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Example initscript
+# Description:       This file should be used to construct scripts to be
+#                    placed in /etc/init.d.  This example start a
+#                    single forking daemon capable of writing a pid
+#                    file.  To get other behavoirs, implemend
+#                    do_start(), do_stop() or other functions to
+#                    override the defaults in /lib/init/init-d-script.
+### END INIT INFO
 
-HDD_LOG=/var/log.hdd/
-RAM_LOG=/var/log/
-LOG2RAM_LOG="${HDD_LOG}log2ram.log"
-LOG_OUTPUT="tee -a $LOG2RAM_LOG"
+# Author:
+# Modified by: fugitive90 
+#
+PATH="/sbin:/bin/:/usr/bin/:/usr/local/bin"
+DESC="Log2Ram is preventing constant disk I/O on embeded system, saving its lifetime. Modified for SysV system"
 
-isSafe () {
-    [ -d $HDD_LOG ] || echo "ERROR: $HDD_LOG doesn't exist!  Can't sync."
-    [ -d $HDD_LOG ] || exit 1
+#HDD_LOG=/var/log.hdd/
+#RAM_LOG=/var/log/
+LOG2RAM_LOG="/var/log.hdd/log2ram"
+
+[ $( id -u ) -ne 0 ] && echo "Must be run as root. Exiting." && exit 2
+
+# Load LSB functions
+. /lib/lsb/init-functions
+
+# Load config 
+[ -f "/etc/default/log2ram.conf" ] && CONFIG="/etc/default/log2ram.conf" && . $CONFIG || log_failure_msg "Config file not found"
+[ -z $CONFIG ] && exit 2
+
+
+is_safe () {
+    [ -d "/var/log.hdd" ] || log_failure_msg "ERROR: /var/log.hdd doesn't exist!  Can't sync."
+    [ -d "/var/log.hdd" ] || exit 1
 }
 
-syncToDisk () {
-    isSafe
+sync_to_disk () {
+    is_safe
 
     if [ "$USE_RSYNC" = true ]; then
-        rsync -aXWv --delete --exclude log2ram.log --links $RAM_LOG $HDD_LOG 2>&1 | $LOG_OUTPUT
+        rsync -aXWv --delete --exclude log2ram.log --links "/var/log" "/var/log.hdd" || exit 2
     else
-        cp -rfup $RAM_LOG -T $HDD_LOG 2>&1 | $LOG_OUTPUT
+        cp -rfup "/var/log" -T "/var/log.hdd" || exit 2
+
     fi
+	 return 0
 }
 
-syncFromDisk () {
-    isSafe
+sync_from_disk () {
+    is_safe
 
-    if [ ! -z `du -sh -t $SIZE $HDD_LOG | cut -f1` ]; then
-        echo "ERROR: RAM disk too small. Can't sync."
-        umount -l $RAM_LOG
-        umount -l $HDD_LOG
+    if [ ! -z `du -sh -t $SIZE "/var/log.hdd" | cut -f1` ]; then
+        log_failure_msg "ERROR: RAM disk too small. Can't sync."
+		  umount_log
+
 		if [ "$MAIL" = true ]; then
+			log_failure_msg "LOG2RAM : No place on RAM anymore, fallback on the disk"
 			echo "LOG2RAM : No place on RAM anymore, fallback on the disk" | mail -s 'Log2Ram Error' root;
 		fi
         exit 1
     fi
 
     if [ "$USE_RSYNC" = true ]; then
-        rsync -aXWv --delete --exclude log2ram.log --links $HDD_LOG $RAM_LOG 2>&1 | $LOG_OUTPUT
+        rsync -aXWv --delete --exclude log2ram.log --links "/var/log.hdd" "/var/log" > "${LOG2RAM_LOG}.log" 2> "${LOG2RAM_LOG}.err"
     else
-        cp -rfup $HDD_LOG -T $RAM_LOG 2>&1 | $LOG_OUTPUT
+        cp -rfup "/var/log.hdd" -T "/var/log" > "${LOG2RAM_LOG}.log" 2> "${LOG2RAM_LOG}.err" 
     fi
+}
+check_is_mounted ()
+{
+	local ec
+	grep -q "log2ram" /proc/mounts 
+   
+	if	[ $? -eq 0  ] ; then
+	  	return 0 	#log2ram  mounted
+	else
+		return 1		#log2ram not  mounted
+	fi
+
 }
 
 
+umount_log ()
+{
+	local _rc_log
+	local _rc_log_hdd
+
+	check_is_mounted
+	if [ $? -eq 0 ];then
+		umount -l "/var/log" && _rc_log=0
+		umount -l "/var/log.hdd" && _rc_log_hdd=0
+		[ -n $_rc_log ] && [ -n $_rc_log_hdd  ] && log_success_msg "log2ram umounted"
+	else
+		log_warning_msg "log2ram is not mounted"
+	fi
+
+}
+
+
+do_start ()
+{
+	
+   [ -d "/var/log.hdd" ] || mkdir "/var/log.hdd"
+   test -f "${LOG2RAM_LOG}.log"  && rm "${LOG2RAM_LOG}.log"  
+   
+	check_is_mounted
+	if [ $? -ne 0  ]; then
+		mount --bind "/var/log" "/var/log.hdd"
+   	mount --make-private "/var/log.hdd"
+   	mount -t tmpfs -o nosuid,noexec,nodev,mode=0755,size=$SIZE log2ram "/var/log"
+   	sync_from_disk && log_success_msg "Log2Ram is running"
+		touch /var/log.hdd/log2ram.lock # this will overwrite anyway
+	else
+		log_warning_msg "Log2Ram already mounted"
+		exit 2
+	fi	
+
+}
+do_stop ()
+{
+	check_is_mounted 
+	test $? -eq 0 && sync_to_disk
+	umount_log
+}
+do_reload ()
+{
+	check_is_mounted
+	if [ $? -eq 0 ]; then
+   	sync_to_disk
+	   exit 0
+	else
+	  log_warning_msg "Log2Ram not mounted. Files not synced!"
+	  exit 2 
+	fi
+
+}
+
 case "$1" in
   start)
-      [ -d $HDD_LOG ] || mkdir $HDD_LOG
-      rm $LOG2RAM_LOG
-      mount --bind $RAM_LOG $HDD_LOG
-      mount --make-private $HDD_LOG
-      mount -t tmpfs -o nosuid,noexec,nodev,mode=0755,size=$SIZE log2ram $RAM_LOG
-      syncFromDisk
-      ;;
-
+	   do_start
+		;;
   stop)
-      syncToDisk
-      umount -l $RAM_LOG
-      umount -l $HDD_LOG
-      ;;
-
-  write)
-      syncToDisk
-      ;;
-	  
-  init)
-      [ -d $HDD_LOG ] || mkdir $HDD_LOG
-      cp -rfup $RAM_LOG -T $HDD_LOG 2>&1 | $LOG_OUTPUT
-	  ;;
-	  
-  *)
-      echo "Usage: log2ram {start|stop|write}" >&2
+		do_stop
+		;;
+  reload)
+		do_reload
+		;;
+	*)
+      echo "Usage: log2ram {start|stop|init|write}" >&2
       exit 1
       ;;
 esac
+
+exit 0
