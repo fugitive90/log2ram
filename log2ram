@@ -2,8 +2,8 @@
 
 ### BEGIN INIT INFO
 # Provides:          
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $syslog
+# Required-Stop:     $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Example initscript
@@ -15,7 +15,7 @@
 #                    override the defaults in /lib/init/init-d-script.
 ### END INIT INFO
 
-# Author:
+# Author: azlux <azlux@outlook.com>
 # Modified by: fugitive90 
 #
 PATH="/sbin:/bin/:/usr/bin/:/usr/local/bin"
