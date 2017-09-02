@@ -1,5 +1,5 @@
 # Log2Ram
-Like ramlog for sysV initt (debian 8 jessie for example).
+Like ramlog for Debian based  sysV init systems 
 
 Usefull for **Raspberry** for not writing all the time on the SD card. You need it because your SD card don't want to suffer anymore !
 
