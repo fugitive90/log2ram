@@ -2,7 +2,7 @@
 
 if [ `id -u` -eq 0 ]
 then
-  cp log2ram.rc /usr/local/etc/rc.d/log2ram
+  cp log2ram.sh /usr/local/etc/rc.d/log2ram
   chmod u+x /usr/local/etc/rc.d/log2ram
   echo "log2ram_enable=\"YES\"" >> /etc/rc.conf
 

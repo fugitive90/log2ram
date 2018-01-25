@@ -164,6 +164,7 @@ log2ram_sync ()
 	check_is_mounted
 	if [ $? -eq 0 ]; then
    	sync_to_disk &&  info "Files synced"
+      logger -p info "Files synced"
 	else
 	  warn "Log2ram not mounted. Files not synced!"
 	  exit 2 
