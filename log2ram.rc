@@ -1,12 +1,13 @@
-#!/bin/sh -x
-#
-# Short-Description: log2ram prevents constant I/O writes on systems running on SSD or SDcard.
-# Description:       This program mount /var/log as a tmpfs keeping logs in RAM.
-#                    On the specified cron job, logs are writen to /var/log.hdd periodically.
-#
+#!/bin/sh
+## $FreeBSD: releng/11.1/etc/rc.d/dmesg 298514 2016-04-23 16:10:54Z lme $#
+
+# PROVIDE: log2ram
+# REQUIRE: mountcritremote FILESYSTEMS
+# BEFORE: DAEMON
+
 # Modification:	   Script modified to be compactible with FreeBSD rc
-#							Pre-check is made if log2ram is already mounted, which prevents over usage of RAM
-### END INIT INFO
+# Pre-check is made if log2ram is already mounted, which prevents over usage of RAM
+
 
 # Author: azlux <azlux@outlook.com>
 # Modified by: fugitive90 <fugitiv3@protonmail.com>
