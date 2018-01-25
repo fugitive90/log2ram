@@ -1,0 +1,2 @@
+0 */1 * * * root /usr/local/etc/rc.d/log2ram sync
+#/usr/local/bin/log2ram reload > /dev/null
