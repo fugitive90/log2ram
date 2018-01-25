@@ -15,8 +15,8 @@ git clone https://github.com/fugitive90/log2ram.git
 cd log2ram
 chmod +x install.sh
 ./install.sh
-/usr/local/etc/rc.d/log2ram start
-/usr/local/etc/rc.d/log2ram sync # To force sync
+service log2ram start
+service log2ram sync # To force sync
 ```
 **REBOOT** before installing anything else (for example apache2)
 
