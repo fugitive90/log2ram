@@ -2,8 +2,8 @@
 
 if [ `id -u` -eq 0 ]
 then
-  /usr/local/etc/init.d/log2ram stop
-  rm /usr/local/etc/init.d/log2ram 
+  /usr/sbin/service log2ram stop
+  rm /usr/local/etc/rc.d/log2ram 
   rm /usr/local/etc/log2ram.conf
   rm /etc/cron.d/log2ram
 else
