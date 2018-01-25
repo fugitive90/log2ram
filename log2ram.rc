@@ -34,7 +34,7 @@ pidfile="/var/run/${name}.pid"
 
 
 # Load config 
-if [ ! -f "/usr/local/etc/log2ram.conf" ]; then
+if [ ! -f $CONFIG ]; then
    err 2 "Config file not found!" 
 else
    . $CONFIG
@@ -64,7 +64,8 @@ umount_log ()
 	check_is_mounted
 	if [ $? -eq 0 ];then
        if ! umount  "$RAM_LOG" ; then
-          umount -f $RAM_LOG && info "${RAM_LOG} unmounted"      
+           warn "Failed umounting $RAM_LOG . Trying to force it.."
+           umount -f $RAM_LOG && info "${RAM_LOG} unmounted"      
        fi
 	else
 		info "Log2ram is not mounted" 
