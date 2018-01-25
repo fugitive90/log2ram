@@ -14,9 +14,9 @@ Log2Ram is based on transient log for Systemd here : [A transient /var/log](http
 git clone https://github.com/fugitive90/log2ram.git
 cd log2ram
 chmod +x install.sh
-sudo ./install.sh
-/usr/local/etc/init.d/log2ram start
-/usr/local/etc/init.d/log2ram sync # To force sync
+./install.sh
+/usr/local/etc/rc.d/log2ram start
+/usr/local/etc/rc.d/log2ram sync # To force sync
 ```
 **REBOOT** before installing anything else (for example apache2)
 
@@ -38,7 +38,7 @@ df -h
 mount -p
 ```
 
-The log for log2ram will be write here : `/var/hdd_log/log2ram.log`
+The log for log2ram will be writen here : `/var/hdd_log/log2ram.log`
 
 ### 
 Author: azlux
